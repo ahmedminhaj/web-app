@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0"
+    />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+
+    <!-- jquery for Bootstrap -->
+    <script
+      src="https://code.jquery.com/jquery-3.1.1.min.js"
+      integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+      crossorigin="anonymous"
+    ></script>
+
+    <!-- bootstrap -->
+    <link
+      rel="stylesheet"
+      href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
+    />
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
+    <!-- font awesome -->
+    <link
+      href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css"
+      rel="stylesheet"
+    />
+
+    <!-- Vue.js script source -->
+    <script src="https://unpkg.com/vue/dist/vue.js"></script>
+
+    <style>
+      .taskDone {
+        text-decoration: line-through;
+      }
+      .completionProgressGreyBar {
+        background-color: cornsilk;
+      }
+      .completionProgressGreenBar {
+        width: 80%;
+        height: 30px;
+        color: #333;
+        background-color: rgb(52, 177, 108);
+      }
+      .header {
+        background: #333;
+        color: rgb(52, 177, 108);
+        text-align: center;
+      }
+      .body {
+        background: mediumseagreen;
+        color: black;
+        padding: 4px;
+        border-bottom: 1px #ccc dotted;
+        font-family: Arial, Helvetica, sans-serif;
+        line-height: 1.4;
+      }
+    </style>
+
+    <title>Todo List Application</title>
+  </head>
+  <body>
+    <div>
+      <div id="app">
+        <br />
+        <div class="header">
+          <div class="panel-heading">
+            <h3 class="text-center">Todo List App</h3>
+          </div>
+
+          <div class="body">
+            <div class="text-center">
+              <label for=""> Task Stats</label>
+              <input type="checkbox" v-model="displayTaskStatistics" />
+              <br />
+              <label for=""> Progress Bar</label>
+              <input type="checkbox" v-model="displayProgressBar" />
+            </div>
+          </div>
+        </div>
+
+        <br />
+
+        <div class="header">
+          <div class="panel-heading">
+            <h3 class="text-center">Add Task</h3>
+          </div>
+
+          <div class="panel-body">
+            <form v-on:submit="addTask">
+              <div class="col-sm-8">
+                <input type="text" class="form-control" v-model="tasks.name" />
+              </div>
+
+              <div class="col-sm-4">
+                <input
+                  type="submit"
+                  class="btn btn-primary btn-block"
+                  value="Add"
+                />
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <table class="table" v-if="tasks.length > 0">
+          <thead>
+            <th>Check Mark Done</th>
+            <th>Task Name</th>
+            <th>Delete</th>
+          </thead>
+
+          <tbody>
+            <tr v-for="task in tasks">
+              <td><input type="checkbox" v-model="task.done" /></td>
+              <td>
+                <span :class="{ taskDone: task.done }">{{ task.name }}</span>
+              </td>
+              <td>
+                <button
+                  class="btn btn-danger btn-block"
+                  v-on:click="deleteTask(task)"
+                >
+                  Delete
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3 class="text-center" v-else>
+          No tasks to do
+        </h3>
+
+        <div class="header" v-if="displayTaskStatistics">
+          <div class="panel-heading">
+            <h3 class="text-center">Tasks Statistics</h3>
+          </div>
+
+          <div class="body">
+            <div class="text-center">
+              <p>Total Tasks: {{ tasks.length }}</p>
+              <p>Tasks Left To Do: {{ leftToDo }}</p>
+              <p>Completed Tasks: {{ checkMarkedTasks }}</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="header" v-if="displayProgressBar">
+          <div class="panel-heading">
+            <h3 class="text-center">Progress Bar</h3>
+          </div>
+
+          <div class="panel-body">
+            <div>
+              <div class="completionProgressGreyBar">
+                <div
+                  class="completionProgressGreenBar text-center"
+                  :style="{ width: percentageOfTasksCompleted + '%' }"
+                >
+                  {{ Math.round(percentageOfTasksCompleted) }}%
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      let todoApp = new Vue({
+        el: "#app",
+        data: {
+          displayTasks: true,
+          displayProgressBar: false,
+          displayAddTasks: true,
+          displayTaskStatistics: false,
+          displayedTasksStat: "totalTasks",
+          tasks: []
+        },
+        methods: {
+          addTask: function(event) {
+            event.preventDefault();
+
+            if (this.tasks.name !== "" && this.tasks.name !== undefined) {
+              this.tasks.push({
+                name: this.tasks.name,
+                done: false
+              });
+            }
+          },
+          deleteTask: function(task) {
+            this.tasks.splice(this.tasks.indexOf(task), 1);
+            this.deletedTasks++;
+          },
+          changeTotalTasks: function() {
+            this.displayedTasksStat = "totalTasks";
+          },
+          changeLeftToDo: function() {
+            this.displayedTasksStat = "leftToDo";
+          },
+          changeCheckMarked: function() {
+            this.displayedTasksStat = "checkMarked";
+          }
+        },
+        computed: {
+          checkMarkedTasks: function() {
+            let count = 0;
+            for (let i = 0; i < this.tasks.length; ++i) {
+              if (this.tasks[i].done == true) {
+                count++;
+              }
+            }
+            return count;
+          },
+          leftToDo: function() {
+            return this.tasks.length - this.checkMarkedTasks;
+          },
+
+          percentageOfTasksCompleted: function() {
+            if (this.tasks.length == 0) {
+              return 0;
+            } else {
+              return (this.checkMarkedTasks / this.tasks.length) * 100;
+            }
+          }
+        }
+      });
+    </script>
+  </body>
+</html>
